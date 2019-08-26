@@ -1,0 +1,10 @@
+/input/
+/output/
+/basic_info/
+/feature/
+/log/
+/submission/
+*.pyc
+*.jpg
+*.JPG
+/model/
