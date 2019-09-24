@@ -23,6 +23,7 @@ from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.linear_model import LogisticRegression
 import numpy as np
+from sklearn import preprocessing
 
 
 
@@ -134,10 +135,27 @@ def lgb_feature(X_train, y_train, X_test, y_test=None):
     maxmax = max(predict)
     vfunc = np.vectorize(lambda x:(x-minmin)/(maxmax-minmin))
     return vfunc(predict)
+def encode_count(df,columns):
+    lbl = preprocessing.LabelEncoder()
+    if not isinstance(columns, list):
+        lbl.fit(list(df[columns].values))
+        df[columns] = lbl.transform(list(df[columns].values))
+    else:
+        for column in columns:
+            lbl.fit(list(df[column].values))
+            df[column] = lbl.transform(list(df[column].values))
+    return df
 def load_data():
-    train = pd.read_csv('./input/Titanic.train.csv')  # 数据文件路径
-    test = pd.read_csv('./input/Titanic.test.csv')
-    train_test_data = pd.concat([train,test],axis=0,ignore_index = True)
+    train = pd.read_csv('./input/cunliang/cunliang_train_smote.csv')  # 数据文件路径
+    test = pd.read_csv('./input/cunliang/cunliang_test.csv')
+    
+
+    #net_service:20AAAAAA-2G,30AAAAAA-3G,40AAAAAA-4G,90AAAAAA-无法区分
+    test = encode_count(test,'net_service')
+    #service_type:0：23G融合,1：2I2C,2：2G,3：3G,4：4G
+    #heyue_time,heyue_final_date
+    tmp_drop = ['heyue_type', 'heyue_time', 'heyue_final_date', 'current_service', 'channel_code']
+    test = test.drop(tmp_drop, axis = 1)
     
     train_x = train.drop(['is_acct'],axis=1)
     train_y = train['is_acct']
@@ -158,9 +176,9 @@ if __name__ == '__main__':
     stack_ds = pipeline.stack(k=5, seed=111, add_diff=False, full_test=True)
     stacker = Regressor(dataset=stack_ds, estimator=LinearRegression,parameters={'fit_intercept': False})
     predict_result = stacker.predict()
-    ans = pd.read_csv('./input/Titanic.sample.csv')
-    ans['Survived'] = predict_result
-    minmin, maxmax = min(ans['Survived']),max(ans['Survived'])
-    ans['Survived'] = ans['Survived'].map(lambda x:(x-minmin)/(maxmax-minmin))
-    ans['Survived'] = ans['Survived'].map(lambda x:'%.4f' % x)
-    ans.to_csv('./submission/ans_stacking.csv',index=None)
+    ans = pd.read_csv('./input/cunliang/submission.csv')
+    ans['is_acct'] = predict_result
+    minmin, maxmax = min(ans['is_acct']),max(ans['is_acct'])
+    ans['is_acct'] = ans['is_acct'].map(lambda x:(x-minmin)/(maxmax-minmin))
+    ans['is_acct'] = ans['is_acct'].map(lambda x:'%.4f' % x)
+    ans.to_csv('./input/cunliang/ans_stacking.csv',index=None)

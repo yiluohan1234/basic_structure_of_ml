@@ -391,7 +391,7 @@ def feature_select_model(dataset):
         #Plot the rankings of all the features for all combinations
         plt.show()
     rank_df = pd.DataFrame(data=[x[7] for x in X_all_add],columns=cols[:c-1])
-    rank_df.median().to_csv('./feature/select.csv')
+    rank_df.median().to_csv('./feature/feature_select_model.csv')
 #     print med
 def ml_feature(df):
     def group_battery(x):

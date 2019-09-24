@@ -60,7 +60,7 @@ def basic_info(df, competition_name, isWrite=True):
     '''
     stats = []
     for col in df.columns:
-        stats.append((col, df[col].nunique(), df[col].isnull().sum(), df[col].isnull().sum() * 100 / df.shape[0], df[col].value_counts(normalize=True, dropna=False).values[0] * 100, df[col].dtype))
+        stats.append((col, df[col].nunique(), df[col].isnull().sum(), df[col].isnull().sum() * 100.0 / df.shape[0], df[col].value_counts(normalize=True, dropna=False).values[0] * 100, df[col].dtype))
         
     stats_df = pd.DataFrame(stats, columns=['Feature', 'Unique_values', 'missing_values_count', 'missing_value_percentage', 'Percentage of values in the biggest category', 'dtype'])
     stats_df.sort_values('missing_value_percentage', ascending=False)
@@ -284,6 +284,14 @@ def missing_data_interpolate(df, column, type):
     df.loc[(df[column].isnull()), column] = missing_age
     return df
 def missing_data_to_categories(df, column, isDrop=True):
+    '''missing_data_to_categories（缺失数据转为是否缺失）
+        Args:
+            df           dataframe
+            column
+            isDrop
+        Returns:
+            None
+    '''
     new_column = column+"_missing"
     df[new_column] = df[column].apply(lambda x: 1 if pd.isnull(x) else 0)
     if not isDrop:
@@ -675,7 +683,7 @@ def plot_categorical_feature(train, col, only_bars=False, top_n=10, by_touch=Fal
 '''
 绘制个数
 '''
-def plot_count(df, col, target, isWrite = False):
+def plot_count(df, col, target, isWrite = True):
     print "%s has %s unique values and type: %s." %(col, df[col].nunique(), df[col].dtype)
     cat_percent = df[[col, target]].groupby(col, as_index=False).mean()
     cat_size = df[col].value_counts().reset_index(drop=False)
@@ -686,11 +694,14 @@ def plot_count(df, col, target, isWrite = False):
     print cat_percent
     plt.rc("figure", figsize = (25,10))
     sns.countplot(x = col, hue = target, data = df)
-#     if isWrite:
-#         return
-#         #plt.savefig("./picture/plot_count.png")
-#     else:
-#         plt.show()
+    if isWrite:
+        #return
+        logPath = "./picture"
+        if not os.path.exists(logPath):
+            os.mkdir(logPath)
+        plt.savefig("./picture/plot_count.png")
+    else:
+        plt.show()
     
 '''
 col为多个类时
